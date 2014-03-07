@@ -18,8 +18,8 @@ module FourierTransform {
     class TransformParameter {
         constructor(public bufferSize: number, public sampleRate: number) {
         }
-        bandWidth = 2 / this.bufferSize * this.sampleRate / 2;
-        spectrum = new Float32Array(this.bufferSize / 2);
+        bandWidth = (this.sampleRate / 2 /*Nyquist theorem*/) / this.bufferSize;
+        spectrum = new Float32Array(this.bufferSize);
         real = new Float32Array(this.bufferSize);
         imaginary = new Float32Array(this.bufferSize);
         peakBand = 0;
@@ -30,8 +30,8 @@ module FourierTransform {
         }
 
         calculateSpectrum() {
-            var bufferSizeInversed = 2 / this.bufferSize;
-            for (var i = 0; i < this.bufferSize / 2; i++) {
+            var bufferSizeInversed = 1 / this.bufferSize;
+            for (var i = 0; i < this.bufferSize; i++) {
                 var magnitude = bufferSizeInversed
                     * Math.sqrt(Math.pow(this.real[i], 2) + Math.pow(this.imaginary[i], 2));//absolute value of complex number
 
@@ -47,12 +47,12 @@ module FourierTransform {
 
     export class DFT {
         constructor(public bufferSize: number, public sampleRate: number) {
-            var N = Math.pow(this.bufferSize, 2) / 2;
-            this.sinTable = new Float32Array(N);
-            this.cosTable = new Float32Array(N);
-            for (var i = 0; i < N; i++) {
+            var sizePow2 = Math.pow(this.bufferSize, 2);
+            this.sinTable = new Float32Array(sizePow2);
+            this.cosTable = new Float32Array(sizePow2);
+            for (var i = 0; i < sizePow2; i++) {
                 this.sinTable[i] = Math.sin(i * Math.PI * 2 / bufferSize);
-                this.cosTable[i] = Math.cos(i * Math.PI * 2 / bufferSize);
+                this.cosTable[i] = -Math.cos(i * Math.PI * 2 / bufferSize);
             }
         }
         private parameter = new TransformParameter(this.bufferSize, this.sampleRate);
@@ -60,12 +60,18 @@ module FourierTransform {
         private cosTable: Float32Array;
 
         forward(buffer: number[]) {
-            for (var i = 0; i < this.bufferSize / 2; i++) {
+            for (var i = 0; i < this.bufferSize; i++) {
+                /*
+                Xk = sigma xn * (e^-i2PIkn/N)
+                =sigma xn * (cos(-2PIkn/N) + isin(-2PIkn/N)) => Euler's formula 
+                =sigma xn * (cos(2PIkn/N) - isin(2PIkn/N))
+                */
+                
                 var real = 0;
                 var imaginary = 0;
                 for (var i2 = 0; i2 < buffer.length; i++) {
-                    real = this.cosTable[i * i2] * buffer[i2];
-                    imaginary = this.sinTable[i * i2] * buffer[i2];
+                    real += this.cosTable[i * i2] * buffer[i2];
+                    imaginary += this.sinTable[i * i2] * buffer[i2];
                 }
                 this.parameter.real[i] = real;
                 this.parameter.imaginary[i] = imaginary;
@@ -101,8 +107,7 @@ module FourierTransform {
         private cosTable: Float32Array;
 
         forward(buffer: number[]) {
-            var bufferLengthLog2 = Math.log(this.bufferSize) / Math.LN2;
-            if (bufferLengthLog2 % 1 != 0) {
+            if ((Math.log(this.bufferSize) / Math.LN2) % 1 != 0) {
                 throw new Error("Invalid buffer size, must be a power of 2.");
             }
             if (this.bufferSize !== buffer.length) {
@@ -116,7 +121,22 @@ module FourierTransform {
 
             var halfSize = 1;
             while (halfSize < this.bufferSize) {
+                var phaseShiftStepReal = this.cosTable[halfSize];
+                var phaseShiftStepImaginary = this.sinTable[halfSize];
 
+                var currentPhaseShiftReal = 1;
+                var currentPhaseShiftImaginary = 0;
+
+                for (var fftStep = 0; fftStep < halfSize; fftStep++) {
+                    var i = fftStep;
+
+                    while (i < this.bufferSize) {
+                        var off = i + halfSize;
+                        //var 
+
+                        this.parameter.real
+                    }
+                }
             }
             //not completely implemented
         }
