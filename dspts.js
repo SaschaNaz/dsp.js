@@ -17,20 +17,20 @@ var FourierTransform;
         function TransformParameter(bufferSize, sampleRate) {
             this.bufferSize = bufferSize;
             this.sampleRate = sampleRate;
-            this.bandWidth = (this.sampleRate / 2) / this.bufferSize;
-            this.spectrum = new Float32Array(this.bufferSize);
+            this.binWidth = (this.sampleRate / 2) * (2 / this.bufferSize);
+            this.spectrum = new Float32Array(this.bufferSize / 2);
             this.real = new Float32Array(this.bufferSize);
             this.imaginary = new Float32Array(this.bufferSize);
             this.peakBand = 0;
             this.peak = 0;
         }
-        TransformParameter.prototype.getBandFrequency = function (index) {
-            return this.bandWidth * index + this.bandWidth / 2;
+        TransformParameter.prototype.getBinFrequency = function (index) {
+            return this.binWidth * index + this.binWidth / 2;
         };
 
         TransformParameter.prototype.calculateSpectrum = function () {
-            var bufferSizeInversed = 1 / this.bufferSize;
-            for (var i = 0; i < this.bufferSize; i++) {
+            var bufferSizeInversed = 2 / this.bufferSize;
+            for (var i = 0; i < this.bufferSize / 2; i++) {
                 var magnitude = bufferSizeInversed * Math.sqrt(Math.pow(this.real[i], 2) + Math.pow(this.imaginary[i], 2));
 
                 if (magnitude > this.peak) {
@@ -49,7 +49,7 @@ var FourierTransform;
             this.bufferSize = bufferSize;
             this.sampleRate = sampleRate;
             this.parameter = new TransformParameter(this.bufferSize, this.sampleRate);
-            var sizePow2 = Math.pow(this.bufferSize, 2);
+            var sizePow2 = Math.pow(this.bufferSize, 2) / 2;
             this.sinTable = new Float32Array(sizePow2);
             this.cosTable = new Float32Array(sizePow2);
             for (var i = 0; i < sizePow2; i++) {
@@ -58,7 +58,7 @@ var FourierTransform;
             }
         }
         DFT.prototype.forward = function (buffer) {
-            for (var i = 0; i < this.bufferSize; i++) {
+            for (var i = 0; i < this.bufferSize / 2; i++) {
                 /*
                 Xk = sigma xn * (e^-i2PIkn/N)
                 =sigma xn * (cos(-2PIkn/N) + isin(-2PIkn/N)) => Euler's formula
