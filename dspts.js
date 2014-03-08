@@ -85,6 +85,8 @@ var FourierTransform;
             this.sampleRate = sampleRate;
             this.parameter = new TransformParameter(this.bufferSize, this.sampleRate);
             this.reverseTable = new Uint32Array(this.bufferSize);
+            this.sinTable = new Float32Array(this.bufferSize);
+            this.cosTable = new Float32Array(this.bufferSize);
             var limit = 1;
             var bit = this.bufferSize >> 1;
 
@@ -95,9 +97,6 @@ var FourierTransform;
                 limit = limit << 1;
                 bit = bit >> 1;
             }
-
-            this.sinTable = new Float32Array(bufferSize);
-            this.cosTable = new Float32Array(bufferSize);
 
             for (var i = 0; i < bufferSize; i++) {
                 this.sinTable[i] = Math.sin(-Math.PI / i);

@@ -93,9 +93,6 @@ module FourierTransform {
                 bit = bit >> 1;
             }
 
-            this.sinTable = new Float32Array(bufferSize);
-            this.cosTable = new Float32Array(bufferSize);
-
             for (var i = 0; i < bufferSize; i++) {
                 this.sinTable[i] = Math.sin(-Math.PI / i);
                 this.cosTable[i] = Math.cos(-Math.PI / i);
@@ -103,8 +100,8 @@ module FourierTransform {
         }
         private parameter = new TransformParameter(this.bufferSize, this.sampleRate);
         private reverseTable = new Uint32Array(this.bufferSize);
-        private sinTable: Float32Array;
-        private cosTable: Float32Array;
+        private sinTable = new Float32Array(this.bufferSize);
+        private cosTable = new Float32Array(this.bufferSize);
 
         forward(buffer: number[]) {
             if ((Math.log(this.bufferSize) / Math.LN2) % 1 != 0) {
