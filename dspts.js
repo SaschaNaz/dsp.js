@@ -87,6 +87,9 @@ var FourierTransform;
             this.reverseTable = new Uint32Array(this.bufferSize);
             this.sinTable = new Float32Array(this.bufferSize);
             this.cosTable = new Float32Array(this.bufferSize);
+            if ((Math.log(bufferSize) / Math.LN2) % 1 != 0)
+                throw new Error("Invalid buffer size, must be a power of 2.");
+
             var limit = 1;
             var bit = this.bufferSize >> 1;
 
@@ -104,12 +107,8 @@ var FourierTransform;
             }
         }
         FFT.prototype.forward = function (buffer) {
-            if ((Math.log(this.bufferSize) / Math.LN2) % 1 != 0) {
-                throw new Error("Invalid buffer size, must be a power of 2.");
-            }
-            if (this.bufferSize !== buffer.length) {
+            if (this.bufferSize !== buffer.length)
                 throw new Error("Supplied buffer is not the same size as defined FFT. FFT Size: " + this.bufferSize + " Buffer Size: " + buffer.length);
-            }
 
             for (var i = 0; i < this.bufferSize; i++) {
                 this.parameter.real[i] = buffer[this.reverseTable[i]];

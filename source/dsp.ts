@@ -47,7 +47,7 @@ module FourierTransform {
 
     export class DFT {
         constructor(public bufferSize: number, public sampleRate: number) {
-            var sizePow2 = Math.pow(this.bufferSize, 2) / 2;
+            var sizePow2 = Math.pow(this.bufferSize, 2) / 2; //Nuquist Theorem
             this.sinTable = new Float32Array(sizePow2);
             this.cosTable = new Float32Array(sizePow2);
             for (var i = 0; i < sizePow2; i++) {
@@ -60,7 +60,7 @@ module FourierTransform {
         private cosTable: Float32Array;
 
         forward(buffer: number[]) {
-            for (var i = 0; i < this.bufferSize / 2; i++) {
+            for (var i = 0; i < this.bufferSize / 2; i++) { //Niquist Theorem
                 /*
                 Xk = sigma xn * (e^-i2PIkn/N)
                 =sigma xn * (cos(-2PIkn/N) + isin(-2PIkn/N)) => Euler's formula 
@@ -82,6 +82,9 @@ module FourierTransform {
 
     export class FFT {
         constructor(public bufferSize: number, public sampleRate: number) {
+            if ((Math.log(bufferSize) / Math.LN2) % 1 != 0)
+                throw new Error("Invalid buffer size, must be a power of 2.");
+
             var limit = 1;
             var bit = this.bufferSize >> 1;
 
@@ -104,12 +107,8 @@ module FourierTransform {
         private cosTable = new Float32Array(this.bufferSize);
 
         forward(buffer: number[]) {
-            if ((Math.log(this.bufferSize) / Math.LN2) % 1 != 0) {
-                throw new Error("Invalid buffer size, must be a power of 2.");
-            }
-            if (this.bufferSize !== buffer.length) {
+            if (this.bufferSize !== buffer.length)
                 throw new Error("Supplied buffer is not the same size as defined FFT. FFT Size: " + this.bufferSize + " Buffer Size: " + buffer.length);
-            }
 
             for (var i = 0; i < this.bufferSize; i++) {
                 this.parameter.real[i] = buffer[this.reverseTable[i]];
